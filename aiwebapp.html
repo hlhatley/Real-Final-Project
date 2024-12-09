@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Riddle Game</title>
+    <style>
+        /* Basic page styling for a chic look */
+        body {
+            font-family: 'Roboto', sans-serif; /* Elegant sans-serif font */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f2f2f2 0%, #e6e6e6 100%); /* Soft gradient */
+            background-size: cover;
+            background-position: center;
+            color: #333;
+            transition: background 1s ease;
+        }
+        
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9); /* Light white background */
+            padding: 40px 50px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* Elegant soft shadow */
+            width: 350px;
+            position: relative;
+            border: 1px solid #ddd; /* Subtle border for a clean look */
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        p {
+            font-size: 16px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        .riddle {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin: 30px 0;
+        }
+
+        input {
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: border 0.3s ease;
+        }
+
+        input:focus {
+            border: 1px solid #B4A7D6; /* Subtle focus color */
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #ADD8E6; /* Light blue */
+            color: black;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 10px 0;
+        }
+
+        button:hover {
+            background-color: #90C8D0; /* Darker blue on hover */
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .next-button, .prev-button {
+            margin-top: 20px;
+        }
+
+        /* Style for confetti canvas */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+        }
+
+        .hint {
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .hint:hover {
+            color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Riddle Game</h1>
+        <p>Can you solve this riddle?</p>
+        
+        <div class="riddle" id="riddle-text"></div>
+        
+        <input type="text" id="answer" placeholder="Type your answer here" />
+        <button onclick="checkAnswer()">Submit Answer</button>
+
+        <div id="result" class="result"></div>
+
+        <div id="hint-container">
+            <span id="hint" class="hint" onclick="showHint()">Show Hint</span>
+        </div>
+
+        <!-- Navigation buttons -->
+        <button class="prev-button" onclick="previousRiddle()">Previous Riddle</button>
+        <button class="next-button" onclick="nextRiddle()">Next Riddle</button>
+    </div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti"></script>
+    
+    <script>
+        // Array of 10 riddles, their answers, hints, and background images
+        const riddles = [
+            {
+                riddle: "What has keys but can't open locks?",
+                answer: "piano",
+                hint: "Think about something that makes music.",
+                background: "https://source.unsplash.com/1600x900/?piano"
+            },
+            {
+                riddle: "I speak without a mouth and hear without ears. I have no body, but I come alive with the wind. What am I?",
+                answer: "echo",
+                hint: "It happens when you shout in an empty room.",
+                background: "https://source.unsplash.com/1600x900/?echo"
+            },
+            {
+                riddle: "The more of this there is, the less you see. What is it?",
+                answer: "darkness",
+                hint: "It is the opposite of light.",
+                background: "https://source.unsplash.com/1600x900/?darkness"
+            },
+            {
+                riddle: "What comes once in a minute, twice in a moment, but never in a thousand years?",
+                answer: "the letter 'm'",
+                hint: "It's something very small.",
+                background: "https://source.unsplash.com/1600x900/?letter,m"
+            },
+            {
+                riddle: "What can travel around the world while staying in the corner?",
+                answer: "a stamp",
+                hint: "It's on an envelope.",
+                background: "https://source.unsplash.com/1600x900/?stamp"
+            },
+            {
+                riddle: "What has a heart that doesn’t beat?",
+                answer: "an artichoke",
+                hint: "It’s a type of vegetable.",
+                background: "https://source.unsplash.com/1600x900/?artichoke"
+            },
+            {
+                riddle: "The more you take, the more you leave behind. What am I?",
+                answer: "footsteps",
+                hint: "You make these while walking.",
+                background: "https://source.unsplash.com/1600x900/?footsteps"
+            },
+            {
+                riddle: "What can you catch, but not throw?",
+                answer: "a cold",
+                hint: "It happens when you’re sick.",
+                background: "https://source.unsplash.com/1600x900/?cold"
+            },
+            {
+                riddle: "What is always in front of you but can’t be seen?",
+                answer: "the future",
+                hint: "It hasn’t happened yet.",
+                background: "https://source.unsplash.com/1600x900/?future"
+            },
+            {
+                riddle: "What has a head, a tail, but no body?",
+                answer: "a coin",
+                hint: "It’s used for making small payments.",
+                background: "https://source.unsplash.com/1600x900/?coin"
+            }
+        ];
+
+        let currentRiddleIndex = 0;
+        let isHintVisible = false;
+
+        // Display the current riddle
+        function displayRiddle() {
+            document.getElementById("riddle-text").textContent = riddles[currentRiddleIndex].riddle;
+            document.getElementById("answer").value = ""; // clear previous answer
+            document.getElementById("result").textContent = ""; // clear result
+            document.getElementById("hint").textContent = "Show Hint";  // Reset hint button text
+            document.getElementById("hint-container").style.display = "block"; // Show hint button
+            
+            // Update the background image related to the current riddle
+            document.body.style.backgroundImage = `url('${riddles[currentRiddleIndex].background}')`;
+            document.body.style.backgroundSize = "cover";
+            document.body.style.backgroundPosition = "center";
+        }
+
+        // Show hint when clicked
+        function showHint() {
+            if (!isHintVisible) {
+                document.getElementById("hint").textContent = "Hide Hint";
+                document.getElementById("result").textContent = riddles[currentRiddleIndex].hint;
+                isHintVisible = true;
+            } else {
+                document.getElementById("hint").textContent = "Show Hint";
+                document.getElementById("result").textContent = "";
+                isHintVisible = false;
+            }
+        }
+
+        // Check the user's answer
+        function checkAnswer() {
+            const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+            const correctAnswer = riddles[currentRiddleIndex].answer.toLowerCase();
+            const resultDiv = document.getElementById("result");
+
+            if (userAnswer === correctAnswer) {
+                resultDiv.textContent = "Correct! Well done!";
+                resultDiv.style.color = "green";
+                triggerConfetti();  // Trigger confetti animation when correct
+            } else {
+                resultDiv.textContent = "Oops! Try again.";
+                resultDiv.style.color = "red";
+            }
+        }
+
+        // Go to the next riddle
+        function nextRiddle() {
+            if (currentRiddleIndex < riddles.length - 1) {
+                currentRiddleIndex++;
+                displayRiddle();
+            } else {
+                alert("Congratulations! You've completed all the riddles.");
+                currentRiddleIndex = 0; // Reset the game after completion
+                displayRiddle();
+            }
+        }
+
+        // Go to the previous riddle
+        function previousRiddle() {
+            if (currentRiddleIndex > 0) {
+                currentRiddleIndex--;
+                displayRiddle();
+            } else {
+                alert("You are already at the first riddle.");
+            }
+        }
+
+        // Confetti function using canvas-confetti library
+        function triggerConfetti() {
+            const confettiCanvas = document.getElementById('confetti-canvas');
+            confettiCanvas.style.display = 'block';  // Make the canvas visible
+            confetti.create(confettiCanvas, {
+                resize: true,  // Automatically resize the canvas to fit the window
+                useWorker: true  // Use web workers for smoother animation
+            })({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+
+            // Hide the confetti canvas after the animation
+            setTimeout(() => {
+                confettiCanvas.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize the game by showing the first riddle
+        displayRiddle();
+    </script>
+
+</body>
+</html>
+
+
+
